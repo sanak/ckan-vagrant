@@ -85,7 +85,10 @@ echo "copying nginx config file"
 sudo cp /vagrant/vagrant/precise64/src/nginx/ckan_default /etc/nginx/sites-available/ckan_default
 
 echo "enabling the site"
+sudo mv /etc/apache2/ports.conf /etc/apache2/ports_org.conf
+echo "Listen 8080" | sudo tee /etc/apache2/ports.conf
 sudo a2ensite ckan_default
+sudo a2dissite 000-default
 sudo ln -s /etc/nginx/sites-available/ckan_default /etc/nginx/sites-enabled/ckan_default
 sudo service apache2 reload
 sudo service nginx reload
