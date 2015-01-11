@@ -13,11 +13,9 @@ VERBOSE=yes
 # Listen to connections from this network host
 # Use 0.0.0.0 as host to accept all connections.
 # Uncomment to restrict access to localhost
-#JETTY_HOST=$(uname -n)
-JETTY_HOST=0.0.0.0
+JETTY_HOST=127.0.0.1
 
 # The network port used by Jetty
-#JETTY_PORT=8080
 JETTY_PORT=8983
 
 # Timeout in seconds for the shutdown of all webapps
@@ -30,7 +28,6 @@ JETTY_PORT=8983
 #JAVA_OPTIONS="-Xmx256m -Djava.awt.headless=true"
 
 # Home of Java installation.
-#JAVA_HOME=
 JAVA_HOME=/usr/lib/jvm/java-6-openjdk-amd64/
 
 # The first existing directory is used for JAVA_HOME (if JAVA_HOME is not
@@ -49,5 +46,3 @@ JAVA_HOME=/usr/lib/jvm/java-6-openjdk-amd64/
 
 # Default for number of days to keep old log files in /var/log/jetty/
 #LOGFILE_DAYS=14
-
-JETTY_LOGS=/var/log/solr

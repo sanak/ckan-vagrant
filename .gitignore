@@ -1,1 +1,4 @@
 .vagrant
+pkg/python-ckan_2.*_amd64.deb
+src/ckan
+.DS_Store
