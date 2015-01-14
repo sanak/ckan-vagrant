@@ -24,8 +24,8 @@ Vagrant.configure("2") do |config|
     pkg22.vm.box_url = "http://files.vagrantup.com/precise64.box"
     # Bootstrap script
     pkg22.vm.provision :shell, :path => "vagrant/precise64/pkg22/provision.sh"
-    # Port forwarding
-    pkg22.vm.network :forwarded_port, guest: 8080, host: 8080
+    # Private network
+    pkg22.vm.network :private_network, ip: "10.0.0.22"
   end
 
   # CKAN 2.0 package
@@ -35,20 +35,21 @@ Vagrant.configure("2") do |config|
     pkg20.vm.box_url = "http://files.vagrantup.com/precise64.box"
     # Bootstrap script
     pkg20.vm.provision :shell, :path => "vagrant/precise64/pkg20/provision.sh"
-    # Port forwarding
-    pkg20.vm.network :forwarded_port, guest: 8080, host: 8080
+    # Private network
+    pkg20.vm.network :private_network, ip: "10.0.0.20"
   end
 
   # CKAN source
-  config.vm.define "precise64" do |precise64|
+  config.vm.define "precise64", primary: true do |precise64|
     # Vagrant box configuration
     precise64.vm.box = "precise64"
     precise64.vm.box_url = "http://files.vagrantup.com/precise64.box"
     # Bootstrap script
     precise64.vm.provision :shell, :path => "vagrant/precise64/src/provision.sh"
-    # Port forwarding
-    precise64.vm.network :forwarded_port, guest: 5000, host: 5000
-    precise64.vm.network :forwarded_port, guest: 8080, host: 8080
+    # Private network
+    precise64.vm.network :private_network, ip: "10.0.0.10"
+    # Synced folders
+    precise64.vm.synced_folder "src/", "/usr/lib/ckan/default/src"
   end
 
 end

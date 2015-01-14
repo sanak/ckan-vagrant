@@ -11,42 +11,57 @@ sudo apt-get update
 echo "installing dependencies available via apt-get"
 sudo apt-get install python-dev postgresql libpq-dev python-pip python-virtualenv git-core solr-jetty openjdk-6-jdk vim -y
 
-cd /vagrant/src
+cd /usr/lib/ckan/default/src
 if [[ ! -d ckan ]]; then
   echo "cloning ckan git repository"
   git clone -b ckan-2.2 https://github.com/ckan/ckan.git ckan
+else
+  echo "deleting *.pyc files"
+  cd ckan
+  find . -name "*.pyc" | xargs rm
 fi
 
 echo "installing the dependencies available via pip"
-sudo mkdir -p /usr/lib/ckan/default
+#sudo mkdir -p /usr/lib/ckan/default
 sudo chown vagrant /usr/lib/ckan/default
 virtualenv --no-site-packages /usr/lib/ckan/default
 . /usr/lib/ckan/default/bin/activate
 #pip install -e 'git+https://github.com/ckan/ckan.git@ckan-2.2#egg=ckan'
-mkdir -p /usr/lib/ckan/default/src
-cp -R /vagrant/src/ckan /usr/lib/ckan/default/src/
 cd /usr/lib/ckan/default/src/ckan
 pip install -e .
 pip install -r /usr/lib/ckan/default/src/ckan/requirements.txt
 deactivate
 . /usr/lib/ckan/default/bin/activate
 
+echo "editing postgresql configuration"
+sudo cp /etc/postgresql/9.1/main/pg_hba.conf /etc/postgresql/9.1/main/pg_hba_org.conf
+sudo sed -i -e "s/peer$/trust/g" /etc/postgresql/9.1/main/pg_hba.conf
+sudo sed -i -e "s/md5$/trust/g" /etc/postgresql/9.1/main/pg_hba.conf
+sudo sh -c "echo 'host    all             all             10.0.0.1/32            trust' >> /etc/postgresql/9.1/main/pg_hba.conf"
+sudo cp /etc/postgresql/9.1/main/postgresql.conf /etc/postgresql/9.1/main/postgresql_org.conf
+sudo sed -i -e "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/9.1/main/postgresql.conf
+sudo service postgresql restart
+
 echo "creating a postgres user and database"
 sudo -u postgres createuser -S -D -R ckan_default
 sudo -u postgres psql -c "ALTER USER ckan_default with password 'pass'"
 sudo -u postgres createdb -O ckan_default ckan_default -E utf-8
 
-echo "copying configuration files"
+echo "creating and editing configuration files"
 sudo mkdir -p /etc/ckan/default
 sudo chown -R vagrant /etc/ckan/
-#cd /usr/lib/ckan/default/src/ckan
-#paster make-config ckan /etc/ckan/default/development.ini
-cd /etc/ckan/default/
-cp /vagrant/vagrant/precise64/src/development.ini development.ini
+cd /usr/lib/ckan/default/src/ckan
+paster make-config ckan /etc/ckan/default/development.ini
+cp /etc/ckan/default/development.ini /etc/ckan/default/development_org.ini
+sudo sed -i -e "s/#solr_url\s*=.*/solr_url = http:\/\/127.0.0.1:8983\/solr/g" /etc/ckan/default/development.ini
 
-echo "copying jetty configuration"
-sudo cp /vagrant/vagrant/precise64/jetty /etc/default/jetty
-sudo service jetty restart
+echo "editing jetty configuration"
+sudo cp /etc/default/jetty /etc/default/jetty_org
+sudo sed -i -e "s/NO_START=1/NO_START=0/g" /etc/default/jetty
+sudo sed -i -e "s/#JETTY_HOST=.*/JETTY_HOST=127.0.0.1/g" /etc/default/jetty
+sudo sed -i -e "s/#JETTY_PORT=.*/JETTY_PORT=8983/g" /etc/default/jetty
+sudo sed -i -e "s/#JAVA_HOME=.*/JAVA_HOME=\/usr\/lib\/jvm\/java-6-openjdk-amd64\//g" /etc/default/jetty
+sudo service jetty start
 
 echo "linking the solr schema file"
 sudo mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.bak
@@ -103,4 +118,4 @@ paster --plugin=ckan create-test-data -c /etc/ckan/default/production.ini
 
 deactivate
 
-echo "you should now have a running instance on http://localhost:8080"
+echo "you should now have a running instance on http://10.0.0.10:8080"

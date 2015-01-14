@@ -27,8 +27,12 @@ sudo service apache2 restart
 echo "install postgresql and jetty"
 sudo apt-get install -y postgresql solr-jetty openjdk-6-jdk
 
-echo "copying jetty configuration"
-sudo cp /vagrant/vagrant/precise64/jetty /etc/default/jetty
+echo "editing jetty configuration"
+sudo cp /etc/default/jetty /etc/default/jetty_org
+sudo sed -i -e "s/NO_START=1/NO_START=0/g" /etc/default/jetty
+sudo sed -i -e "s/#JETTY_HOST=.*/JETTY_HOST=127.0.0.1/g" /etc/default/jetty
+sudo sed -i -e "s/#JETTY_PORT=.*/JETTY_PORT=8983/g" /etc/default/jetty
+sudo sed -i -e "s/#JAVA_HOME=.*/JAVA_HOME=\/usr\/lib\/jvm\/java-6-openjdk-amd64\//g" /etc/default/jetty
 sudo service jetty start
 
 echo "linking the solr schema file"
@@ -43,7 +47,8 @@ sudo -u postgres psql -c "ALTER USER ckan_default with password 'pass'"
 sudo -u postgres createdb -O ckan_default ckan_default -E utf-8
 
 echo "initialize CKAN database"
-cp /vagrant/vagrant/precise64/pkg22/production.ini /etc/ckan/default/production.ini
+cp /etc/ckan/default/production.ini /etc/ckan/default/production_org.ini
+sudo sed -i -e "s/#solr_url\s*=.*/solr_url = http:\/\/127.0.0.1:8983\/solr/g" /etc/ckan/default/production.ini
 sudo ckan db init
 
 sudo service apache2 restart
@@ -58,4 +63,4 @@ paster --plugin=ckan sysadmin add admin -c /etc/ckan/default/production.ini
 echo "loading test data"
 paster --plugin=ckan create-test-data -c /etc/ckan/default/production.ini
 
-echo "you should now have a running instance on http://localhost:8080"
+echo "you should now have a running instance on http://10.0.0.22:8080"

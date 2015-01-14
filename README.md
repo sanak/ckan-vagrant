@@ -13,7 +13,7 @@ In order to make the getting started part easier I created this shell script to 
 4. Move to the directory with your terminal application `cd ckan-vagrant/`
 5. Create the instance `vagrant up pkg22` (Instead of `pkg22`, `pkg20` and `precise64` are also available.)
 6. Go get some coffee (it takes up to 15 minutes except first time)
-7. Open [http://localhost:8080] in your browser.
+7. Open [http://10.0.0.xx:8080] in your browser. ("xx" is "22" for `pkg22`, "20" for `pkg20` or "10" for `precise64`.)
 
 
 ## License
